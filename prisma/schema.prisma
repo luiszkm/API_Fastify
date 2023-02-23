@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model favorites {
+  user_id    Int?
+  product_id Int?
+  created_at DateTime? @default(now())
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  products   products? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@ignore
+}
+
+model ingredients {
+  id             Int       @id @default(autoincrement())
+  ingredientName String
+  product_id     Int?
+  products       products? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model knex_migrations {
+  id             Int       @id @default(autoincrement())
+  name           String?
+  batch          Int?
+  migration_time DateTime?
+}
+
+model knex_migrations_lock {
+  index     Int  @id @default(autoincrement())
+  is_locked Int?
+}
+
+model products {
+  id             Int              @id @default(autoincrement())
+  title          String?
+  price          String?
+  description    String?
+  inventory      Int?
+  category       String?
+  image          String?
+  created_at     DateTime?        @default(now())
+  updated_at     DateTime?        @default(now())
+  favorites      favorites[]      @ignore
+  ingredients    ingredients[]
+  purchases      purchases[]
+  requests_itens requests_itens[]
+}
+
+model purchases {
+  id         Int       @id @default(autoincrement())
+  totalPrice String?
+  amount     Int?
+  user_id    Int?
+  product_id Int?
+  created_at DateTime? @default(now())
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products   products? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model requests {
+  id             Int              @id @default(autoincrement())
+  status         String?
+  totalPrice     String?
+  user_id        Int?
+  created_at     DateTime?        @default(now())
+  users          users?           @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  requests_itens requests_itens[]
+}
+
+model requests_itens {
+  id             Int       @id @default(autoincrement())
+  request_id     Int?
+  request_amount Int?
+  request_price  String?
+  user_id        Int?
+  product_id     Int?
+  requests       requests? @relation(fields: [request_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users          users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products       products? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  id             Int              @id @default(autoincrement())
+  name           String?
+  email          String?
+  password       String?
+  admin          Int?
+  avatar         String?
+  created_at     DateTime?        @default(now())
+  updated_at     DateTime?        @default(now())
+  favorites      favorites[]      @ignore
+  purchases      purchases[]
+  requests       requests[]
+  requests_itens requests_itens[]
+}
